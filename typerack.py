@@ -25,7 +25,6 @@ class HelloWorld:
         if response == gtk.RESPONSE_OK :
             the_file = open( chooser.get_filename(), 'r' )
             self.textview.get_buffer().set_text(the_file.read(MAX_BUFFER_SIZE))
-            self.textview.set_size_request(300,300)
             self.textiter = self.textview.get_iter_at_location(0,0)
             the_file.close()
 
@@ -68,15 +67,24 @@ class HelloWorld:
         self.window.set_resizable(True)
         self.window.set_default_size(300,300)
 
-        self.button = gtk.Button("Yo!")
-        self.button.connect("clicked", self.hello, None)
-
         self.textview = gtk.TextView()
         self.textview.set_editable(False)
         self.textview.connect("button-press-event", self.goodbye, None)
+        self.textview.set_size_request(300,300)
+
+        self.textentry = gtk.TextView()
+        self.textentry.set_size_request(300,20)
+        self.textentry.get_buffer().set_text("How now brown cow?")
+
+        self.layout = gtk.Layout()
+        self.layout.put( self.textview, 0, 0 )
+        self.layout.put( self.textentry, 0, 20 )
+
+        self.button = gtk.Button("Yo!")
+        self.button.connect("clicked", self.hello, None)
 
         self.vbox = gtk.VBox(False)
-        self.vbox.pack_start(self.textview, True)
+        self.vbox.pack_start(self.layout, True)
         self.vbox.pack_start(self.button, False)
 
         # Interesting - The button will destroy the window

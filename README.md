@@ -1,6 +1,6 @@
 # The idea
 
-Some typing tutor software can only get you so far. Maybe it tutors you in touch typing all the letters but leaves out the numbers or letters. Maybe its limited number of lessons become repetitive and give diminishing returns. Maybe it just ain't that good for typing your language of choice. Typerack will pick up where those typing tutors stop.
+Some typing tutor software can only get you so far. Maybe it tutors you in touch typing all the letters but leaves out the numbers or punctuation. Maybe the limited number of lessons become repetitive and give diminishing returns. Maybe it just ain't that good for typing your language of choice. Typerack will pick up where those typing tutors stop.
 
 
 # Current features
@@ -12,6 +12,7 @@ Some typing tutor software can only get you so far. Maybe it tutors you in touch
 
 * You will be able to load any text file and practice typing its contents.
 * You will be able to select different kinds of error highlighting to suit different goals (speed versus accuracy).
+* You will be able to see visualisation of your progress.
 * And you will be able to choose how to treat all that pesky white space in code files.
 
 

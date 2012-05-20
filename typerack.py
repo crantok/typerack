@@ -1,18 +1,36 @@
 #!/usr/bin/env python
 
-# example base.py
+# typerack - Python Typing Practice
+#
+# Practice typing content of relevance to you.
+#
+# Copyright (C) 2012 Justin Hellings <justin.hellings@gmail.com>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pygtk
 pygtk.require('2.0')
 import gtk
 
+# Maximum number of bytes to read in to text buffer.
 MAX_BUFFER_SIZE = 1024 * 1024
 
 
-class HelloWorld:
+class Typerack :
 
-    def hello(self, widget, data=None):
-        print "Hello World"
+    def load_file(self, widget, data=None):
+        # Create a file dialog
         chooser = gtk.FileChooserDialog(
                 title=None,
                 action=gtk.FILE_CHOOSER_ACTION_OPEN,
@@ -21,8 +39,14 @@ class HelloWorld:
                     gtk.STOCK_OPEN, gtk.RESPONSE_OK
                     )
                 )
+
+        # Show the dialog to the user
         response = chooser.run()
+
+        # Did the user select a file?
         if response == gtk.RESPONSE_OK :
+
+            # Load text from the file.
             the_file = open( chooser.get_filename(), 'r' )
             self.textview.get_buffer().set_text(the_file.read(MAX_BUFFER_SIZE))
             self.textiter = self.textview.get_iter_at_location(0,0)
@@ -30,7 +54,10 @@ class HelloWorld:
 
         chooser.destroy()
 
-    def goodbye(self, widget, event, data=None):
+    def newline(self, widget, event, data=None):
+        # Advance the text buffer's iterator by one line.
+        # Currently, text does not start to scroll until the first
+        # off-screen line is reached.
         self.textview.forward_display_line(self.textiter)
         print self.textiter.get_line()
         self.textview.scroll_to_iter(self.textiter, 0)
@@ -41,19 +68,14 @@ class HelloWorld:
         # Aha! This is because TRUE indicates that an event has
         # been handled whereas FALSE indicates that it has not.
         print "delete event occurred"
-        # Shows a gtk.Window object. Emmitter or catcher?
-        print widget
         return False
 
     def destroy(self, widget, data=None):
         gtk.main_quit()
-        # Shows a gtk.Window object. Emmitter or catcher?
-        print widget
         # Should we be returning a boolean here to indicate
         # that the event has been handled?
 
     def __init__(self):
-        print __name__
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 
         # delete_event is a signal sent by the window manager
@@ -69,8 +91,11 @@ class HelloWorld:
 
         self.textview = gtk.TextView()
         self.textview.set_editable(False)
-        self.textview.connect("button-press-event", self.goodbye, None)
         self.textview.set_size_request(300,300)
+
+        # For now, using mouse clicks on the TextView to test
+        # scrolling through the file.
+        self.textview.connect("button-press-event", self.newline, None)
 
         self.textentry = gtk.TextView()
         self.textentry.set_size_request(300,20)
@@ -80,24 +105,12 @@ class HelloWorld:
         self.layout.put( self.textview, 0, 0 )
         self.layout.put( self.textentry, 0, 20 )
 
-        self.button = gtk.Button("Yo!")
-        self.button.connect("clicked", self.hello, None)
+        self.button = gtk.Button("Load file")
+        self.button.connect("clicked", self.load_file, None)
 
         self.vbox = gtk.VBox(False)
         self.vbox.pack_start(self.layout, True)
         self.vbox.pack_start(self.button, False)
-
-        # Interesting - The button will destroy the window
-        # when clicked. This sends the same signal to the
-        # window that would be sent by returning FALSE from
-        # the delete_event handler.
-        # More interesting - is gtk.Widget.destroy a class method
-        # or is it an instance method?
-        # class, whereas connect() accepts
-        # self.button.connect_object("clicked", gtk.Widget.destroy, self.window)
-        # Trying this instead gives this error:
-        #    TypeError: destroy() takes no arguments (1 given)
-        # self.button.connect("clicked", self.window.destroy)
 
         self.window.add(self.vbox)
         self.window.show_all()
@@ -105,8 +118,9 @@ class HelloWorld:
     def main(self):
         gtk.main()
 
+
+
 if __name__ == "__main__":
     print __name__
-    # Looks like Python doesn't use a "new" operator or method.
-    base = HelloWorld()
+    base = Typerack()
     base.main()

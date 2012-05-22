@@ -54,13 +54,35 @@ class Typerack :
 
         chooser.destroy()
 
-    def newline(self, widget, event, data=None):
+    def newline(self):
         # Advance the text buffer's iterator by one line.
         # Currently, text does not start to scroll until the first
         # off-screen line is reached.
         self.textview.forward_display_line(self.textiter)
         print self.textiter.get_line()
         self.textview.scroll_to_iter(self.textiter, 0)
+
+    def is_forbidden_key_press(self, event):
+        return (
+            not hasattr(event, "string") or
+            event.string == "" or
+            event.state & gtk.gdk.CONTROL_MASK or
+            event.state & gtk.gdk.MOD1_MASK )
+            
+    def on_text_entry(self, widget, event):
+        # Let the user see responses to normal typing including
+        # the Enter key and backspace, but nothing else.
+        # Cut-and-paste and the arrow keys should do nothing.
+
+        if event.keyval == 65288: # Was backspace key pressed?
+            self.typed_buffer = self.typed_buffer[0:-1]
+        elif event.keyval == 65293: # Was enter key pressed?
+            self.newline()
+        elif self.is_forbidden_key_press(event):
+            return True
+        else:
+            self.typed_buffer += event.string
+        print self.typed_buffer
 
     def delete_event(self, widget, event, data=None):
         # Counter-intuitively, return FALSE to terminate
@@ -75,7 +97,7 @@ class Typerack :
         # Should we be returning a boolean here to indicate
         # that the event has been handled?
 
-    def __init__(self):
+    def init_window( self ):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 
         # delete_event is a signal sent by the window manager
@@ -93,13 +115,10 @@ class Typerack :
         self.textview.set_editable(False)
         self.textview.set_size_request(300,300)
 
-        # For now, using mouse clicks on the TextView to test
-        # scrolling through the file.
-        self.textview.connect("button-press-event", self.newline, None)
-
         self.textentry = gtk.TextView()
         self.textentry.set_size_request(300,20)
         self.textentry.get_buffer().set_text("How now brown cow?")
+        self.textentry.connect("key-press-event", self.on_text_entry)
 
         self.layout = gtk.Layout()
         self.layout.put( self.textview, 0, 0 )
@@ -113,6 +132,14 @@ class Typerack :
         self.vbox.pack_start(self.button, False)
 
         self.window.add(self.vbox)
+
+    def init_buffers( self ):
+        self.typed_buffer = ""
+        self.first_press_buffer = ""
+
+    def __init__(self):
+        self.init_window()
+        self.init_buffers()
         self.window.show_all()
 
     def main(self):

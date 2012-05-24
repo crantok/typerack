@@ -91,6 +91,11 @@ class Typerack :
             self.typed_buffer += event.string
         print self.typed_buffer
 
+    def on_text_view_focus( self, widget, event, data=None ):
+        # TextViews should never get the focus. Don't intefere with typing
+        self.textentry.grab_focus()
+        return True
+
     def delete_event(self, widget, event, data=None):
         # Counter-intuitively, return FALSE to terminate
         # or TRUE to cancel termination
@@ -121,6 +126,8 @@ class Typerack :
         self.textview = gtk.TextView()
         self.textview.set_editable(False)
         self.textview.set_size_request(300,300)
+        self.textview.connect("focus", self.on_text_view_focus)
+        self.textview.connect("button-press-event", self.on_text_view_focus)
 
         self.textentry = gtk.TextView()
         self.textentry.set_size_request(300,20)
@@ -131,12 +138,19 @@ class Typerack :
         self.layout.put( self.textview, 0, 0 )
         self.layout.put( self.textentry, 0, 20 )
 
-        self.button = gtk.Button("Load file")
-        self.button.connect("clicked", self.load_file, None)
+        self.choose_file = gtk.Button("Load file")
+        self.choose_file.connect("clicked", self.load_file, None)
+
+        self.modes = gtk.combo_box_new_text()
+        self.modes.append_text("Invisible typing")
+        self.modes.append_text("Visible typing")
+        self.modes.append_text("Mark mistakes")
+        self.modes.append_text("Freeze on mistake")
 
         self.vbox = gtk.VBox(False)
         self.vbox.pack_start(self.layout, True)
-        self.vbox.pack_start(self.button, False)
+        self.vbox.pack_start(self.choose_file, False)
+        self.vbox.pack_start(self.modes, False)
 
         self.window.add(self.vbox)
 

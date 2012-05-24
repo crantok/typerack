@@ -75,9 +75,16 @@ class Typerack :
         # Cut-and-paste and the arrow keys should do nothing.
 
         if event.keyval == 65288: # Was backspace key pressed?
-            self.typed_buffer = self.typed_buffer[0:-1]
+            # Was the last typed character a newline?
+            if self.typed_buffer[-1] != "\n":
+                # It is safe to delete the last character.
+                self.typed_buffer = self.typed_buffer[0:-1]
+            else:
+                # Don't delete past beginning of current line.
+                return True
         elif event.keyval == 65293: # Was enter key pressed?
             self.newline()
+            self.typed_buffer += "\n"
         elif self.is_forbidden_key_press(event):
             return True
         else:

@@ -48,19 +48,27 @@ class Typerack :
 
             # Load text from the file.
             the_file = open( chooser.get_filename(), 'r' )
-            self.textview.get_buffer().set_text(the_file.read(MAX_BUFFER_SIZE))
-            self.textiter = self.textview.get_iter_at_location(0,0)
+            textbuffer = self.textview.get_buffer()
+            textbuffer.set_text(the_file.read(MAX_BUFFER_SIZE))
+            self.text_start_iter = textbuffer.get_start_iter()
+            self.typing_end_iter = textbuffer.get_start_iter()
+            self.buffer_end_iter = textbuffer.get_end_iter()
             the_file.close()
 
+            colormap = self.textview.get_colormap()
+            color = colormap.alloc_color(0xffff, 0xffff, 0xffff)
+            tag = self.textview.get_buffer().create_tag("fg_white", foreground_gdk=color)
+            color = colormap.alloc_color(0, 0, 0)
+            tag = self.textview.get_buffer().create_tag("fg_black", foreground_gdk=color)
         chooser.destroy()
 
     def newline(self):
         # Advance the text buffer's iterator by one line.
         # Currently, text does not start to scroll until the first
         # off-screen line is reached.
-        self.textview.forward_display_line(self.textiter)
-        print self.textiter.get_line()
-        self.textview.scroll_to_iter(self.textiter, 0)
+        self.textview.forward_display_line(self.typing_end_iter)
+        print self.typing_end_iter.get_line()
+        self.textview.scroll_to_iter(self.typing_end_iter, 0)
 
     def is_forbidden_key_press(self, event):
         return (
@@ -76,20 +84,34 @@ class Typerack :
 
         if event.keyval == 65288: # Was backspace key pressed?
             # Was the last typed character a newline?
-            if self.typed_buffer[-1] != "\n":
+            if len(self.typed_buffer) > 0 and self.typed_buffer[-1] != "\n":
                 # It is safe to delete the last character.
                 self.typed_buffer = self.typed_buffer[0:-1]
+                self.typing_end_iter.backward_char()
             else:
                 # Don't delete past beginning of current line.
                 return True
         elif event.keyval == 65293: # Was enter key pressed?
             self.newline()
             self.typed_buffer += "\n"
+            self.typing_end_iter.forward_char()
         elif self.is_forbidden_key_press(event):
             return True
         else:
             self.typed_buffer += event.string
+            self.typing_end_iter.forward_char()
         print self.typed_buffer
+        self.textview.get_buffer().remove_tag_by_name(
+                "fg_white", self.typing_end_iter, self.buffer_end_iter)
+        self.textview.get_buffer().apply_tag_by_name(
+                "fg_black", self.typing_end_iter, self.buffer_end_iter)
+        self.textview.get_buffer().remove_tag_by_name(
+                "fg_black", self.text_start_iter, self.typing_end_iter)
+        self.textview.get_buffer().apply_tag_by_name(
+                "fg_white", self.text_start_iter, self.typing_end_iter)
+        print self.text_start_iter.get_offset()
+        print self.typing_end_iter.get_offset()
+        print self.buffer_end_iter.get_offset()
 
     def on_text_view_focus( self, widget, event, data=None ):
         # TextViews should never get the focus. Don't intefere with typing
@@ -131,7 +153,6 @@ class Typerack :
 
         self.textentry = gtk.TextView()
         self.textentry.set_size_request(300,20)
-        self.textentry.get_buffer().set_text("How now brown cow?")
         self.textentry.connect("key-press-event", self.on_text_entry)
 
         self.layout = gtk.Layout()
@@ -157,6 +178,7 @@ class Typerack :
     def init_buffers( self ):
         self.typed_buffer = ""
         self.first_press_buffer = ""
+
 
     def __init__(self):
         self.init_window()
